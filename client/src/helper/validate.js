@@ -7,6 +7,13 @@ export async function usernameValidate(values){
     return errors;
 }
 
+/** validate password */
+export async function passwordValidate(values){
+    const errors = passwordVerify({}, values);
+
+    return errors;
+}
+
 /** validate reset password */
 export async function resetPasswordValidation(values){
     const errors = passwordVerify({}, values);
@@ -18,11 +25,32 @@ export async function resetPasswordValidation(values){
     return errors;
 }
 
+/** validate register form */
+export async function registerValidation(values){
+    const errors = usernameVerify({}, values);
+    passwordVerify(errors, values);
+    emailVerify(errors, values);
 
+    return errors;
+}
+
+
+/** ************************************************* */
 
 /** validate password */
-export async function passwordValidate(values){
-    const errors = passwordVerify({}, values);
+function passwordVerify(errors = {}, values){
+
+    const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+
+    if(!values.password){
+        errors.password = toast.error("Password Required...!");
+    } else if(values.password.includes(" ")){
+        errors.password = toast.error("Wrong Password...!");
+    }else if(values.password.length < 4){
+        errors.password = toast.error("Password must be more than 4 characters long");
+    }else if(!specialChars.test(values.password)){
+        errors.password = toast.error("Password must have special character");
+    }
 
     return errors;
 }
@@ -39,28 +67,15 @@ function usernameVerify(error = {}, values){
     return error;
 }
 
-
-
-/** validate password */
-
-function passwordVerify(errors={},values){
-    const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
-if(!values.password){
-    errors.password=toast.error("password required");
-
-}
-else if (values.password.includes(" "))
-    {
-        errors.password=toast.error("No blank space required");
+/** validate email */
+function emailVerify(error ={}, values){
+    if(!values.email){
+        error.email = toast.error("Email Required...!");
+    }else if(values.email.includes(" ")){
+        error.email = toast.error("Wrong Email...!")
+    }else if(!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email)){
+        error.email = toast.error("Invalid email address...!")
     }
 
-    else if(values.password.length<4)
-        {
-            errors.password=toast.error("Password must be more than 4 char");
-        }
-        else if(!specialChars.test(values.password)){
-            errors.password=toast.error("Password must have atleast 1 special character");
-
-        }
-        return errors;
+    return error;
 }
