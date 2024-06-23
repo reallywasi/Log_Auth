@@ -1,3 +1,6 @@
+import UserModel from "../model/User.model.js";
+import bcrypt from 'bcrypt';
+
 
 // /** POST: http://localhost:8080/api/register 
 //  * @param : {
@@ -12,9 +15,51 @@
 // }
 // */
 
-export async function register(req,res){
-    res.json('register route');
+export async function register(req, res) {
+    try {
+        const { username, password, profile, email } = req.body;
+
+        // Check for existing username
+        const existUsername = await UserModel.findOne({ username });
+        if (existUsername) {
+            return res.status(400).send({ error: "Please use a unique username" });
+        }
+
+        // Check for existing email
+        const existEmail = await UserModel.findOne({ email });
+        if (existEmail) {
+            return res.status(400).send({ error: "Please use a unique email" });
+        }
+
+        // Hash the password
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // Create a new user
+            const user = new UserModel({
+                username,
+                password: hashedPassword,
+                profile: profile || '',
+                email
+            });
+
+            // Save the user
+            await user.save();
+            return res.status(201).send({ msg: "User registered successfully" });
+        } else {
+            return res.status(400).send({ error: "Password is required" });
+        }
+    } catch (error) {
+        console.error("Server error:", error);
+        return res.status(500).send({ error: "Server error", details: error.message });
+    }
 }
+
+
+
+
+
+
 
 
 // /** POST: http://localhost:8080/api/login 
