@@ -219,7 +219,7 @@ export async function getUser(req, res) {
     }
 }
 
-________________________________________________________________________________________
+//________________________________________________________________________________________
 
 // /** PUT: http://localhost:8080/api/updateuser 
 //  * @param: {
@@ -231,10 +231,41 @@ ________________________________________________________________________________
 //     profile : ''
 // }
 // */
-export async function updateUser(req,res){
-    res.json('updateUser route');
+
+
+
+export async function updateUser(req, res) {
+    try {
+        const userId = req.query.id;
+
+        if (!userId) {
+            return res.status(400).send({ error: "User ID is required" });
+        }
+
+        const updateFields = { ...req.body };
+
+        console.log("Updating user with ID:", userId);
+        console.log("Update fields:", updateFields);
+
+        const updatedUser = await UserModel.findByIdAndUpdate(userId, updateFields, { new: true });
+
+        console.log("Updated user:", updatedUser);
+
+        if (!updatedUser) {
+            return res.status(404).send({ error: "User not found or no changes made" });
+        }
+
+        return res.status(200).send({ msg: "User updated successfully", updatedUser });
+
+    } catch (error) {
+        console.error("Server error:", error);
+        return res.status(500).send({ error: "Server error", details: error.message });
+    }
 }
 
+
+
+//_____________________________________________________________________________________
 
 // /** GET: http://localhost:8080/api/generateOTP */
 export async function generateOTP(req,res){
