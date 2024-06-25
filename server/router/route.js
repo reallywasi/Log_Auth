@@ -3,7 +3,7 @@
 
 import express from "express";
 const router = express.Router();
-import Auth from "../middleware/auth.js";
+import Auth,{localVariables} from "../middleware/auth.js";
 
 //import all the controllers
 import * as controller from '../controllers/appController.js'
@@ -16,13 +16,13 @@ router.post("/login",controller.verifyUser, controller.login);
 
 // -------- GET METHODS --------
 router.get('/user/:username', controller.getUser);
-router.get('/generateOTP', controller.generateOTP);
+router.get('/generateOTP',controller.verifyUser,localVariables, controller.generateOTP);
 router.get('/verifyOTP', controller.verifyOTP);
 router.get('/createResetSession', controller.createResetSession);
 
 // -------- PUT METHODS --------
 router.put('/updateuser',Auth, controller.updateUser);
-router.put('/resetPassword', controller.resetPassword);
+router.put('/resetPassword',controller.verifyUser, controller.resetPassword);
 
 
 

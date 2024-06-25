@@ -20,3 +20,15 @@ export default async function Auth(req, res, next) {
         return res.status(401).json({ error: "Authentication Failed!" });
     }
 }
+
+
+
+// middleware for otp generation local variables
+
+export function localVariables(req, res, next){
+    req.app.locals = {
+        OTP : null,
+        resetSession : false
+    }
+    next()
+}
