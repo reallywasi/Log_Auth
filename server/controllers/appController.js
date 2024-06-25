@@ -187,9 +187,38 @@ export async function login(req, res) {
 
 
 // /** GET: http://localhost:8080/api/user/example123 */
-export async function getUser(req,res){
-    res.json('getUser route');
+/** GET: http://localhost:8080/api/user/example123 */
+export async function getUser(req, res) {
+    const { username } = req.params;
+
+    console.log("Received request for username:", username);
+
+    try {
+        if (!username) {
+            console.log("Invalid Username");
+            return res.status(400).send({ error: "Invalid Username" });
+        }
+
+        console.log("Searching for user:", username);
+
+        const user = await UserModel.findOne({ username: new RegExp('^' + username + '$', 'i') });
+        if (!user) {
+            console.log("User not found:", username);
+            return res.status(404).send({ error: "Couldn't Find the User" });
+        }
+
+        console.log("User found:", user);
+
+        // Remove password from user
+        const { password, ...rest } = user.toJSON();
+
+        return res.status(200).send(rest);
+    } catch (error) {
+        console.error("Server error:", error);
+        return res.status(500).send({ error: "Cannot Find User Data", details: error.message });
+    }
 }
+
 
 
 // /** PUT: http://localhost:8080/api/updateuser 
