@@ -12,7 +12,7 @@ import * as controller from '../controllers/appController.js'
 router.post("/register", controller.register);
 router.post("/registerMail", controller.registerMail);
 router.post("/authenticate", controller.authenticate);
-router.post("/login", controller.login);
+router.post("/login",controller.verifyUser, controller.login);
 
 // -------- GET METHODS --------
 router.get('/user/:username', controller.getUser);

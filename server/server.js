@@ -3,6 +3,8 @@ import cors from "cors";
 import morgan from "morgan";
 import connect from "./database/conn.js";
 import router from "./router/route.js"; // to be used as a middleware
+import dotenv from 'dotenv';
+dotenv.config();
 
 //==========================================================================
 const app = express();
