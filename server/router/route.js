@@ -3,7 +3,7 @@
 
 import express from "express";
 const router = express.Router();
-
+import Auth from "../middleware/auth.js";
 
 //import all the controllers
 import * as controller from '../controllers/appController.js'
@@ -21,7 +21,7 @@ router.get('/verifyOTP', controller.verifyOTP);
 router.get('/createResetSession', controller.createResetSession);
 
 // -------- PUT METHODS --------
-router.put('/updateuser', controller.updateUser);
+router.put('/updateuser',Auth, controller.updateUser);
 router.put('/resetPassword', controller.resetPassword);
 
 
