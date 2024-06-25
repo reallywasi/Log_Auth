@@ -1,10 +1,11 @@
 import UserModel from "../model/User.model.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import otpGenerator from 'otp-generator'
 
 
-
-
+//__________________________________________________________________________________________________________
+//==========================================================================================================
 
 /** middleware for verify user */
 export async function verifyUser(req, res, next){
@@ -25,8 +26,8 @@ export async function verifyUser(req, res, next){
 
 
 
-
-
+//__________________________________________________________________________________________________________
+//==========================================================================================================
 
 
 
@@ -90,7 +91,8 @@ export async function register(req, res) {
 
 
 
-
+////__________________________________________________________________________________________________________
+//==========================================================================================================
 
 
 
@@ -178,12 +180,8 @@ export async function login(req, res) {
 
 
 
-
-
-
-
-
-//________________________________________________________________________________________
+////__________________________________________________________________________________________________________
+//==========================================================================================================
 
 
 // /** GET: http://localhost:8080/api/user/example123 */
@@ -219,7 +217,8 @@ export async function getUser(req, res) {
     }
 }
 
-//________________________________________________________________________________________
+////__________________________________________________________________________________________________________
+//==========================================================================================================
 
 // /** PUT: http://localhost:8080/api/updateuser 
 //  * @param: {
@@ -289,34 +288,99 @@ export async function updateUser(req, res) {
 }
 
 
-//_____________________________________________________________________________________
+////__________________________________________________________________________________________________________
+//==========================================================================================================
+
+
 
 // /** GET: http://localhost:8080/api/generateOTP */
 export async function generateOTP(req,res){
-    res.json('generateOTP route');
+    req.app.locals.OTP = await otpGenerator.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false})
+    res.status(201).send({ code: req.app.locals.OTP })
 }
+
+
+//__________________________________________________________________________________________________________
+//==========================================================================================================
 
 
 // /** GET: http://localhost:8080/api/verifyOTP */
 export async function verifyOTP(req,res){
-    res.json('verifyOTP route');
+    const { code } = req.query;
+    if(parseInt(req.app.locals.OTP) === parseInt(code)){
+        req.app.locals.OTP = null; // reset the OTP value
+        req.app.locals.resetSession = true; // start session for reset password
+        return res.status(201).send({ msg: 'Verify Successsfully!'})
+    }
+    return res.status(400).send({ error: "Invalid OTP"});
 }
+
+
+//__________________________________________________________________________________________________________
+//==========================================================================================================
 
 
 // // successfully redirect user when OTP is valid
 // /** GET: http://localhost:8080/api/createResetSession */
-export async function createResetSession(req,res){
-    res.json('createResetSession route');
+export async function createResetSession(req, res) {
+    req.app.locals.resetSession = true; // Start the reset session
+    return res.status(201).send({ msg: 'Reset session created successfully' });
 }
+
+
+//__________________________________________________________________________________________________________
+//==========================================================================================================
+
 
 
 // // update the password when we have valid session
 // /** PUT: http://localhost:8080/api/resetPassword */
-export async function resetPassword(req,res){
-    res.json('resetPassword route');
+
+
+export async function resetPassword(req, res) {
+    try {
+        if (!req.app.locals.resetSession) {
+            return res.status(440).send({ error: "Session expired!" });
+        }
+
+        const { username, password } = req.body;
+
+        if (!username || !password) {
+            return res.status(400).send({ error: "Username and password are required" });
+        }
+
+        try {
+            const user = await UserModel.findOne({ username });
+            if (!user) {
+                return res.status(404).send({ error: "Username not found" });
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            const updateResult = await UserModel.updateOne({ username: user.username }, { password: hashedPassword });
+            if (updateResult.nModified === 0) {
+                return res.status(404).send({ error: "Failed to update password" });
+            }
+
+            req.app.locals.resetSession = false; // reset session
+            return res.status(201).send({ msg: "Password updated successfully" });
+
+        } catch (error) {
+            console.error("Server error:", error);
+            return res.status(500).send({ error: "Server error", details: error.message });
+        }
+
+    } catch (error) {
+        return res.status(401).send({ error: "Unauthorized", details: error.message });
+    }
 }
 
 
+
+
+
+//__________________________________________________________________________________________________________
+//==========================================================================================================
 
 
 // Add the missing controller for registerMail and authenticate
@@ -324,6 +388,14 @@ export async function registerMail(req, res) {
     res.status(201).json({ message: "User registered successfully" });
 }
 
+
+//__________________________________________________________________________________________________________
+//==========================================================================================================
+
 export async function authenticate(req, res) {
     res.status(201).json({ message: "User authenticated successfully" });
 }
+
+
+//__________________________________________________________________________________________________________
+//==========================================================================================================
