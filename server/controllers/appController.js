@@ -234,35 +234,59 @@ export async function getUser(req, res) {
 
 
 
+// export async function updateUser(req, res) {
+//     try {
+//         const userId = req.query.id;
+
+//         if (!userId) {
+//             return res.status(400).send({ error: "User ID is required" });
+//         }
+
+//         const updateFields = { ...req.body };
+
+//         console.log("Updating user with ID:", userId);
+//         console.log("Update fields:", updateFields);
+
+//         const updatedUser = await UserModel.findByIdAndUpdate(userId, updateFields, { new: true });
+
+//         console.log("Updated user:", updatedUser);
+
+//         if (!updatedUser) {
+//             return res.status(404).send({ error: "User not found or no changes made" });
+//         }
+
+//         return res.status(200).send({ msg: "User updated successfully", updatedUser });
+
+//     } catch (error) {
+//         console.error("Server error:", error);
+//         return res.status(500).send({ error: "Server error", details: error.message });
+//     }
+// }
+
+
 export async function updateUser(req, res) {
     try {
-        const userId = req.query.id;
+        const { userId } = req.user;
 
         if (!userId) {
-            return res.status(400).send({ error: "User ID is required" });
+            return res.status(401).send({ error: "User Not Found!" });
         }
 
-        const updateFields = { ...req.body };
+        const body = req.body;
 
-        console.log("Updating user with ID:", userId);
-        console.log("Update fields:", updateFields);
+        // Update the data
+        const updatedUser = await UserModel.updateOne({ _id: userId }, body).exec();
 
-        const updatedUser = await UserModel.findByIdAndUpdate(userId, updateFields, { new: true });
-
-        console.log("Updated user:", updatedUser);
-
-        if (!updatedUser) {
+        if (updatedUser.nModified === 0) {
             return res.status(404).send({ error: "User not found or no changes made" });
         }
 
-        return res.status(200).send({ msg: "User updated successfully", updatedUser });
-
+        return res.status(201).send({ msg: "Record Updated...!" });
     } catch (error) {
         console.error("Server error:", error);
         return res.status(500).send({ error: "Server error", details: error.message });
     }
 }
-
 
 
 //_____________________________________________________________________________________
